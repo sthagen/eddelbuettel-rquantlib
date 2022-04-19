@@ -1,4 +1,3 @@
-% $Id$
 \name{BondUtilities}
 \alias{matchBDC}
 \alias{matchCompounding}
@@ -16,7 +15,7 @@ possible values---the user is not expected to call these functions directly..}
 matchBDC(bdc = c("Following", "ModifiedFollowing", "Preceding",
                  "ModifiedPreceding", "Unadjusted",
                  "HalfMonthModifiedFollowing", "Nearest"))
-matchCompounding(cp = c("Simple", "Compounded", "Continuous", "SimpleThenCompounded")) 
+matchCompounding(cp = c("Simple", "Compounded", "Continuous", "SimpleThenCompounded"))
 matchDayCounter(daycounter = c("Actual360", "ActualFixed", "ActualActual", "Business252",
                               "OneDayCounter", "SimpleDayCounter", "Thirty360",
                               "Actual365NoLeap", "ActualActual.ISMA", "ActualActual.Bond",
@@ -28,7 +27,7 @@ matchFrequency(freq = c("NoFrequency","Once", "Annual", "Semiannual",
                         "EveryFourthMonth", "Quarterly", "Bimonthly",
                         "Monthly", "EveryFourthWeek", "Biweekly",
                         "Weekly", "Daily"))
-matchParams(params) 
+matchParams(params)
 }
 \arguments{
   \item{bdc}{A string identifying one of the possible business day convention values.}
@@ -46,15 +45,22 @@ matchParams(params)
 \details{
   The QuantLib documentation should be consulted for details.
 
-  Note that \code{Actual365NoLeap} is deprecated as of QuantLib 1.11 and
-  no longer supported by default. It can be reinstated by defining
-  \code{RQUANTLIB_USE_ACTUAL365NOLEAP}.
+  Note that \code{Actual365NoLeap} is soft deprecated as of QuantLib 1.11 and hard deprecated as of
+  QuantLib 1.16. For users on QuantLib 1.16 or later, use of the RQuantLib daycounter enum with a
+  value of severn will result in \code{Actual365Fixed(Actual365Fixed::NoLeap)} which is functionally
+  equivalent to \code{Actual365NoLeap}. Previously RQuantLib allowed users to retain
+  \code{Actual365NoLeap} via defining \code{RQUANTLIB_USE_ACTUAL365NOLEAP}, but this is no longer
+  required.
+
+  Also note that \code{ActualActual} without explicit convention specification is hard deprecated
+  as of QuantLib 1.23. This is only soft-deprecated in RQuantLib by explicitly passing in the same
+  default convention. Previously RQuantLib allowed users to define
+  \code{RQUANTLIB_USE_ACTUALACTUAL}, but this is no longer required.
 }
-\references{\url{http://quantlib.org} for details on \code{QuantLib}.}
+\references{\url{https://www.quantlib.org/} for details on \code{QuantLib}.}
 \author{Khanh Nguyen \email{knguyen@cs.umb.edu} for the \R interface;
   the QuantLib Group for \code{QuantLib}}
 \note{The interface might change in future release as \code{QuantLib}
   stabilises its own API.}
 %\examples{}
 \keyword{misc}
-

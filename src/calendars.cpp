@@ -1,7 +1,7 @@
 
 //  RQuantLib -- R interface to the QuantLib libraries
 //
-//  Copyright (C) 2002 - 2020  Dirk Eddelbuettel
+//  Copyright (C) 2002 - 2021  Dirk Eddelbuettel
 //  Copyright (C) 2010         Dirk Eddelbuettel and Khanh Nguyen
 //
 //  RQuantLib is free software: you can redistribute it and/or modify
@@ -32,6 +32,21 @@ QuantLib::ext::shared_ptr<QuantLib::Calendar> getCalendar(const std::string &cal
     } else if (calstr == "Australia") {
         pcal.reset(new QuantLib::Australia());
 
+#if QL_HEX_VERSION >= 0x011900f0
+    } else if (calstr == "Austria" || calstr == "Austria/Settlement") {
+        pcal.reset(new QuantLib::Austria());
+    } else if (calstr == "Austria/Exchange") {
+        pcal.reset(new QuantLib::Austria(QuantLib::Austria::Exchange));
+#endif
+
+    } else if (calstr == "Bespoke") {
+        pcal.reset(new QuantLib::BespokeCalendar());
+
+    } else if (calstr == "Botswana") {
+        pcal.reset(new QuantLib::Botswana());
+    } else if (calstr == "Botswana") {
+        pcal.reset(new QuantLib::Botswana());
+
     } else if (calstr == "Brazil") {
         pcal.reset(new QuantLib::Brazil());
 
@@ -39,6 +54,11 @@ QuantLib::ext::shared_ptr<QuantLib::Calendar> getCalendar(const std::string &cal
         pcal.reset(new QuantLib::Canada(QuantLib::Canada::Settlement));
     } else if (calstr == "Canada/TSX") {
         pcal.reset(new QuantLib::Canada(QuantLib::Canada::TSX));
+
+#if QL_HEX_VERSION >= 0x012400f0
+    } else if (calstr == "Chile") {
+        pcal.reset(new QuantLib::Chile());
+#endif
 
     } else if (calstr == "China") {
         pcal.reset(new QuantLib::China());
@@ -51,6 +71,11 @@ QuantLib::ext::shared_ptr<QuantLib::Calendar> getCalendar(const std::string &cal
 
     } else if (calstr == "Finland") {
         pcal.reset(new QuantLib::Finland());
+
+    } else if (calstr == "France" || calstr == "France/Settlement") {
+        pcal.reset(new QuantLib::France(QuantLib::France::Settlement));
+    } else if (calstr == "France/Exchange") {
+        pcal.reset(new QuantLib::France(QuantLib::France::Exchange));
 
     } else if (calstr == "Germany" || calstr == "Germany/FrankfurtStockExchange") {
         pcal.reset(new QuantLib::Germany(QuantLib::Germany::FrankfurtStockExchange));
@@ -76,6 +101,11 @@ QuantLib::ext::shared_ptr<QuantLib::Calendar> getCalendar(const std::string &cal
     } else if (calstr == "Indonesia") {
         pcal.reset(new QuantLib::Indonesia());
 
+    } else if (calstr == "Israel" || calstr == "Israel/Settlement") {
+        pcal.reset(new QuantLib::Israel(QuantLib::Israel::Settlement));
+    } else if (calstr == "Israel/TASE") {
+        pcal.reset(new QuantLib::Israel(QuantLib::Israel::TASE));
+
     } else if (calstr == "Italy" || calstr == "Italy/Settlement") {
         pcal.reset(new QuantLib::Italy(QuantLib::Italy::Settlement));
     } else if (calstr == "Italy/Exchange") {
@@ -93,8 +123,20 @@ QuantLib::ext::shared_ptr<QuantLib::Calendar> getCalendar(const std::string &cal
     } else if (calstr == "Norway") {
         pcal.reset(new QuantLib::Norway());
 
+    } else if (calstr == "Null" ||
+               calstr == "null" ||
+               calstr == "NULL") {
+        pcal.reset(new QuantLib::NullCalendar());
+
     } else if (calstr == "Poland") {
         pcal.reset(new QuantLib::Poland());
+
+#if QL_HEX_VERSION >= 0x011900f0
+    } else if (calstr == "Romania" || calstr == "Romania/Public") {
+        pcal.reset(new QuantLib::Romania(QuantLib::Romania::Public));
+    } else if (calstr == "Romania/BVB") {
+        pcal.reset(new QuantLib::Romania(QuantLib::Romania::BVB));
+#endif
 
     } else if (calstr == "Russia") {
         pcal.reset(new QuantLib::Russia());
@@ -125,6 +167,9 @@ QuantLib::ext::shared_ptr<QuantLib::Calendar> getCalendar(const std::string &cal
     } else if (calstr == "Taiwan") {
         pcal.reset(new QuantLib::Taiwan());
 
+    } else if (calstr == "Thailand") {
+        pcal.reset(new QuantLib::Thailand());
+
     } else if (calstr == "Turkey") {
         pcal.reset(new QuantLib::Turkey());
 
@@ -146,6 +191,10 @@ QuantLib::ext::shared_ptr<QuantLib::Calendar> getCalendar(const std::string &cal
         pcal.reset(new QuantLib::UnitedStates(QuantLib::UnitedStates::GovernmentBond));
     } else if (calstr == "UnitedStates/NERC") {
         pcal.reset(new QuantLib::UnitedStates(QuantLib::UnitedStates::NERC));
+    } else if (calstr == "UnitedStates/LiborImpact") {
+        pcal.reset(new QuantLib::UnitedStates(QuantLib::UnitedStates::LiborImpact));
+    } else if (calstr == "UnitedStates/FederalReserve") {
+        pcal.reset(new QuantLib::UnitedStates(QuantLib::UnitedStates::FederalReserve));
 
     } else if (calstr == "WeekendsOnly") {
         pcal.reset(new QuantLib::WeekendsOnly());
@@ -311,6 +360,19 @@ std::vector<QuantLib::Date> getHolidayList(std::string calendar,
 #endif
     return holidays;
 }
+
+// [[Rcpp::export]]
+std::vector<QuantLib::Date> getBusinessDayList(std::string calendar,
+                                               QuantLib::Date from, QuantLib::Date to) {
+
+    QuantLib::ext::shared_ptr<QuantLib::Calendar> pcal(getCalendar(calendar));
+    std::vector<QuantLib::Date> bizdays;
+#if QL_HEX_VERSION >= 0x011800f0
+    bizdays = pcal->businessDayList(from, to);
+#endif
+    return bizdays;
+}
+
 
 // [[Rcpp::export]]
 void addHolidays(std::string calendar, std::vector<QuantLib::Date> dates) {

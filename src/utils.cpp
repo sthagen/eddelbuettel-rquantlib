@@ -1,7 +1,7 @@
 
 //  RQuantLib -- R interface to the QuantLib libraries
 //
-//  Copyright (C) 2002 - 2020  Dirk Eddelbuettel
+//  Copyright (C) 2002 - 2021  Dirk Eddelbuettel
 //  Copyright (C) 2005 - 2006  Dominick Samperi
 //  Copyright (C) 2009 - 2012  Dirk Eddelbuettel and Khanh Nguyen
 //
@@ -128,7 +128,7 @@ QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure> buildTermStructure(Rcpp:
         //Integer fixingDays = RQLContext::instance().fixingDays;
 
         // Any DayCounter would be fine;  ActualActual::ISDA ensures that 30 years is 30.0
-        QuantLib::DayCounter termStructureDayCounter = QuantLib::ActualActual(QuantLib::ActualActual::ISDA);
+        QuantLib::DayCounter termStructureDayCounter = QuantLib::ActualActual(QuantLib::ActualActual::Convention::ISDA);
         double tolerance = 1.0e-15;
 
         if (firstQuoteName.compare("flat") == 0) {	// Create a flat term structure.
@@ -269,7 +269,7 @@ rebuildCurveFromZeroRates(std::vector<QuantLib::Date> dates,
     QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>
         rebuilt_curve(new QuantLib::InterpolatedZeroCurve<QuantLib::LogLinear>(dates,
                                                                                zeros,
-                                                                               QuantLib::ActualActual()));
+                                                                               QuantLib::Actual365Fixed()));
     return rebuilt_curve;
 }
 
@@ -368,7 +368,7 @@ QuantLib::DayCounter getDayCounter(const double n){
     else if (n==1)
         return QuantLib::Actual365Fixed();
     else if (n==2)
-        return QuantLib::ActualActual();
+        return QuantLib::ActualActual(QuantLib::ActualActual::ISDA); // reasonable default for back compatibility
     else if (n==3)
         return QuantLib::Business252();
     else if (n==4)
@@ -376,10 +376,12 @@ QuantLib::DayCounter getDayCounter(const double n){
     else if (n==5)
         return QuantLib::SimpleDayCounter();
     else if (n==6)
-        return QuantLib::Thirty360();
-#ifdef RQUANTLIB_USE_ACTUAL365NOLEAP
-     else if (n==7)
-         return QuantLib::Actual365NoLeap();
+        return QuantLib::Thirty360(QuantLib::Thirty360::BondBasis);  // reasonable default for back compatibility
+    else if (n==7)
+#if QL_HEX_VERSION >= 0x011600f0 && !defined(RQUANTLIB_USE_ACTUAL365NOLEAP)
+        return QuantLib::Actual365Fixed(QuantLib::Actual365Fixed::NoLeap);
+#else
+        return QuantLib::Actual365NoLeap();
 #endif
     else if (n==8)
         return QuantLib::ActualActual(QuantLib::ActualActual::ISMA);
@@ -391,8 +393,24 @@ QuantLib::DayCounter getDayCounter(const double n){
         return QuantLib::ActualActual(QuantLib::ActualActual::Historical);
     else if (n==12)
         return QuantLib::ActualActual(QuantLib::ActualActual::AFB);
-    else // if (n==13)
+    else if (n==13)
         return QuantLib::ActualActual(QuantLib::ActualActual::Euro);
+    else if (n==14)
+        return QuantLib::Thirty360(QuantLib::Thirty360::USA);
+    else if (n==15)
+        return QuantLib::Thirty360(QuantLib::Thirty360::BondBasis);
+    else if (n==16)
+        return QuantLib::Thirty360(QuantLib::Thirty360::European);
+    else if (n==17)
+        return QuantLib::Thirty360(QuantLib::Thirty360::EurobondBasis);
+    else if (n==18)
+        return QuantLib::Thirty360(QuantLib::Thirty360::Italian);
+    else if (n==19)
+        return QuantLib::Thirty360(QuantLib::Thirty360::German);
+    else
+        // Stop on verbose error -- Do not silently default to the arbitrarily
+        // last else statement because it can conceal bugs in user code.
+        Rcpp::stop("Unknown option '%d'", n);
 }
 
 QuantLib::BusinessDayConvention getBusinessDayConvention(const double n){
@@ -633,7 +651,7 @@ QuantLib::Duration::Type getDurationType(const double n) {
 //'
 //' @title Return the QuantLib version number
 //' @return A character variable
-//' @references \url{http://quantlib.org} for details on \code{QuantLib}.
+//' @references \url{https://www.quantlib.org} for details on \code{QuantLib}.
 //' @author Dirk Eddelbuettel
 //' @examples
 //'   getQuantLibVersion()
@@ -648,7 +666,7 @@ std::string getQuantLibVersion() {
 //' Not all of these features are used (yet) by RQuantLib.
 //' @title Return configuration options of the QuantLib library
 //' @return A named vector of logical variables
-//' @references \url{http://quantlib.org} for details on \code{QuantLib}.
+//' @references \url{https://www.quantlib.org} for details on \code{QuantLib}.
 //' @author Dirk Eddelbuettel
 //' @examples
 //'   getQuantLibCapabilities()

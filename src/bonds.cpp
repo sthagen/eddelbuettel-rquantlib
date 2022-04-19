@@ -1,7 +1,7 @@
 
 //  RQuantLib -- R interface to the QuantLib libraries
 //
-//  Copyright (C) 2002 - 2019  Dirk Eddelbuettel
+//  Copyright (C) 2002 - 2022  Dirk Eddelbuettel
 //  Copyright (C) 2009 - 2012  Khanh Nguyen and Dirk Eddelbuettel
 //
 //  This file is part of RQuantLib.
@@ -553,8 +553,12 @@ Rcpp::List convertibleZeroBondEngine(Rcpp::List rparam,
         QuantLib::ext::shared_ptr<QuantLib::BlackScholesMertonProcess>(new QuantLib::BlackScholesMertonProcess(underlying, dividendYield,
                                                                                                        rff, volatility));
 
+#if QL_HEX_VERSION < 0x012500f0
     QuantLib::RelinkableHandle<QuantLib::Quote> creditSpread;
     creditSpread.linkTo(QuantLib::ext::shared_ptr<QuantLib::Quote>(new QuantLib::SimpleQuote(creditSpreadQuote)));
+#else
+    QuantLib::Handle<QuantLib::Quote> creditSpread(QuantLib::ext::shared_ptr<QuantLib::Quote>(new QuantLib::SimpleQuote(creditSpreadQuote)));
+#endif
 
     QuantLib::ext::shared_ptr<QuantLib::Exercise> euExercise(new QuantLib::EuropeanExercise(maturityDate));
     QuantLib::ext::shared_ptr<QuantLib::Exercise> amExercise(new QuantLib::AmericanExercise(issueDate, maturityDate));
@@ -562,7 +566,11 @@ Rcpp::List convertibleZeroBondEngine(Rcpp::List rparam,
 
     QuantLib::Size timeSteps = 1001;
     QuantLib::ext::shared_ptr<QuantLib::PricingEngine>
-        engine(new QuantLib::BinomialConvertibleEngine<QuantLib::CoxRossRubinstein>(blackProcess, timeSteps));
+        engine(new QuantLib::BinomialConvertibleEngine<QuantLib::CoxRossRubinstein>(blackProcess, timeSteps
+#if QL_HEX_VERSION >= 0x012500f0
+                                                                                    , creditSpread, dividendSchedule
+#endif
+                                                                                    ));
 
     QuantLib::Handle<QuantLib::YieldTermStructure>
         discountCurve(QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>(new QuantLib::ForwardSpreadedTermStructure(rff, creditSpread)));
@@ -570,8 +578,13 @@ Rcpp::List convertibleZeroBondEngine(Rcpp::List rparam,
     QuantLib::Schedule sch(issueDate, maturityDate, QuantLib::Period(freq), calendar,
                            bdc, bdc, QuantLib::DateGeneration::Backward, false);
     QuantLib::ConvertibleZeroCouponBond bond(ex, conversionRatio,
-                                             dividendSchedule, callabilitySchedule,
+#if QL_HEX_VERSION < 0x012500f0
+                                             dividendSchedule,
+#endif
+                                             callabilitySchedule,
+#if QL_HEX_VERSION < 0x012500f0
                                              creditSpread,
+#endif
                                              issueDate, settlementDays,
                                              dc, sch,
                                              redemption);
@@ -660,7 +673,11 @@ Rcpp::List convertibleFixedBondEngine(Rcpp::List rparam,
 
     QuantLib::Size timeSteps = 1001;
     QuantLib::ext::shared_ptr<QuantLib::PricingEngine>
-        engine(new QuantLib::BinomialConvertibleEngine<QuantLib::CoxRossRubinstein>(blackProcess, timeSteps));
+        engine(new QuantLib::BinomialConvertibleEngine<QuantLib::CoxRossRubinstein>(blackProcess, timeSteps
+#if QL_HEX_VERSION >= 0x012500f0
+                                                                                    , creditSpread, dividendSchedule
+#endif
+                                                                                    ));
 
     QuantLib::Handle<QuantLib::YieldTermStructure>
         discountCurve(QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>(new QuantLib::ForwardSpreadedTermStructure(rff,
@@ -671,8 +688,14 @@ Rcpp::List convertibleFixedBondEngine(Rcpp::List rparam,
                            bdc, bdc,
                            QuantLib::DateGeneration::Backward, false);
     QuantLib::ConvertibleFixedCouponBond bond(ex, conversionRatio,
-                                              dividendSchedule, callabilitySchedule,
-                                              creditSpread,issueDate,
+#if QL_HEX_VERSION < 0x012500f0
+                                              dividendSchedule,
+#endif
+                                              callabilitySchedule,
+#if QL_HEX_VERSION < 0x012500f0
+                                              creditSpread,
+#endif
+                                              issueDate,
                                               settlementDays,
                                               Rcpp::as<std::vector <double> >(rates),
                                               dc, sch, redemption);
@@ -781,7 +804,11 @@ Rcpp::List convertibleFloatingBondEngine(Rcpp::List rparam,
 
 
     QuantLib::Size timeSteps = 1001;
-    QuantLib::ext::shared_ptr<QuantLib::PricingEngine> engine(new QuantLib::BinomialConvertibleEngine<QuantLib::CoxRossRubinstein>(blackProcess, timeSteps));
+    QuantLib::ext::shared_ptr<QuantLib::PricingEngine> engine(new QuantLib::BinomialConvertibleEngine<QuantLib::CoxRossRubinstein>(blackProcess, timeSteps
+#if QL_HEX_VERSION >= 0x012500f0
+                                                                                                                                   , creditSpread, dividendSchedule
+#endif
+                                                                                                                                   ));
 
     QuantLib::Handle<QuantLib::YieldTermStructure>
         discountCurve(QuantLib::ext::shared_ptr<QuantLib::YieldTermStructure>(new QuantLib::ForwardSpreadedTermStructure(rff,
@@ -789,9 +816,15 @@ Rcpp::List convertibleFloatingBondEngine(Rcpp::List rparam,
     QuantLib::Natural fixingDays = 2;
     QuantLib::Schedule sch(issueDate, maturityDate, QuantLib::Period(freq),
                            calendar, bdc, bdc, QuantLib::DateGeneration::Backward, false);
-    QuantLib::ConvertibleFloatingRateBond bond(ex, conversionRatio, dividendSchedule, callabilitySchedule,
-                                               creditSpread,issueDate,
-                                               settlementDays,iborindex,fixingDays, spreads,
+    QuantLib::ConvertibleFloatingRateBond bond(ex, conversionRatio,
+#if QL_HEX_VERSION < 0x012500f0
+                                               dividendSchedule,
+#endif
+                                               callabilitySchedule,
+#if QL_HEX_VERSION < 0x012500f0
+                                               creditSpread,
+#endif
+                                               issueDate, settlementDays,iborindex,fixingDays, spreads,
                                                dc, sch, redemption);
     bond.setPricingEngine(engine);
 
@@ -1101,7 +1134,7 @@ Rcpp::List fittedBondCurveEngine(Rcpp::List curveparam,
     for (int i = 0; i < n; i++) {
         QuantLib::Date d = current;
         dates[i] =  Rcpp::Date(d.month(), d.dayOfMonth(), d.year());
-        zr[i] = curve->zeroRate(current, QuantLib::ActualActual(), QuantLib::Continuous);
+        zr[i] = curve->zeroRate(current, QuantLib::Actual365Fixed(), QuantLib::Continuous);
         di[i] = curve->discount(current);
         current++;
     }

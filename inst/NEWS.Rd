@@ -4,6 +4,55 @@
 \newcommand{\ghit}{\href{https://github.com/eddelbuettel/rquantlib/issues/#1}{##1}}
 \newcommand{\ghrp}{\href{https://github.com/#1}{##1}}
 
+\section{Changes in \pkg{RQuantLib} version 0.4.15 (2022-01-19)}{
+  \itemize{
+    \item Changes in \pkg{RQuantLib} code:
+    \itemize{
+      \item Calendar support has been updated and completed to current
+      QuantLib standards (Dirk in \ghpr{161})
+      \item More daycounters have been added (Kai Lin in \ghpr{163}
+      fixing \ghit{162}, \ghit{164})
+      \item The bonds pricers were update to changes in QuantLib 1.25 (Dirk)
+    }
+    \item Changes in \pkg{RQuantLib} package and setup:
+    \itemize{
+      \item Some package metadata was removed from the README.md (Dirk)
+    }
+  }
+}
+
+\section{Changes in \pkg{RQuantLib} version 0.4.14 (2021-10-06)}{
+  \itemize{
+    \item Changes in \pkg{RQuantLib} code:
+    \itemize{
+      \item Several new calendars were added (Dirk in \ghpr{159} closing
+      \ghit{155})
+    }
+    \item Changes in \pkg{RQuantLib} package and setup:
+    \itemize{
+      \item Docker containers are now updated on a monthly schedule via
+      GitHub Actions
+      \item The \code{configure} files were updated to the standard of
+      version 2.69 following a CRAN request
+    }
+  }
+}
+
+\section{Changes in \pkg{RQuantLib} version 0.4.13 (2021-09-02)}{
+  \itemize{
+    \item Changes in \pkg{RQuantLib} code:
+    \itemize{
+      \item Small updates to \code{DESCRIPTION} and \code{README.md}
+      \item Switch CI use to \href{https://eddelbuettel.github.io/r-ci/}{r-ci}
+      \item An eleven-year old typo was correct in a manual page (Dirk in
+      \ghpr{156} fixing \ghit{155} with thanks to @klin133)
+      \item Daycount convention calls deprecated in QuantLib 1.23 were
+      updated (Dirk in \ghpr{157})
+      \item Updated remaining http:// URLs in documentation to https://
+    }
+  }
+}
+
 \section{Changes in \pkg{RQuantLib} version 0.4.12 (2020-04-01)}{
   \itemize{
     \item Changes in \pkg{RQuantLib} code:

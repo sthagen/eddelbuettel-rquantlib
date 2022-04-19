@@ -1,12 +1,11 @@
 ## RQuantLib: R Interface to the [QuantLib](https://www.quantlib.org) Library
 
-[![Build Status](https://travis-ci.org/eddelbuettel/rquantlib.svg)](https://travis-ci.org/eddelbuettel/rquantlib)
 [![CI](https://github.com/eddelbuettel/rquantlib/workflows/ci/badge.svg)](https://github.com/eddelbuettel/rquantlib/actions?query=workflow%3Aci)
 [![License](http://img.shields.io/badge/license-GPL%20%28%3E=%202%29-brightgreen.svg?style=flat)](http://www.gnu.org/licenses/gpl-2.0.html)
 [![CRAN](http://www.r-pkg.org/badges/version/RQuantLib)](https://cran.r-project.org/package=RQuantLib)
 [![Dependencies](https://tinyverse.netlify.com/badge/RQuantLib)](https://cran.r-project.org/package=RQuantLib)
 [![Debian package](https://img.shields.io/debian/v/r-cran-rquantlib/sid?color=brightgreen)](https://packages.debian.org/sid/r-cran-rquantlib)
-[![Downloads](http://cranlogs.r-pkg.org/badges/RQuantLib?color=brightgreen)](http://www.r-pkg.org/pkg/RQuantLib)
+[![Downloads](http://cranlogs.r-pkg.org/badges/RQuantLib?color=brightgreen)](https://www.r-pkg.org:443/pkg/RQuantLib)
 [![Last Commit](https://img.shields.io/github/last-commit/eddelbuettel/rquantlib)](https://github.com/eddelbuettel/rquantlib)
 
 ### About
@@ -48,7 +47,7 @@ Windows binary packages are available via [CRAN](https://cran.r-project.org) tha
 [Joshua Ulrich](https://about.me/joshuaulrich) and [Jeroen Ooms](https://github.com/jeroen)
 providing a QuantLib binary for the CRAN builders. Similarly, binaries for macOS _can_ be provided
 when a suitable macOS library of QuantLib is prepared, possibly via
-[s-u/recipes](https://github.com/s-u/recipes).  If and when these binary libraries may be outdated,
+[s-u/recipes](https://github.com/R-macos/recipes).  If and when these binary libraries may be outdated,
 please raise the issue on the [rquantlib mailing list](http://rquantlib.groups.io).
 
 For more OS-specific installation options, please see [the wiki](https://github.com/eddelbuettel/rquantlib/wiki/RQuantLib).
@@ -56,6 +55,10 @@ For more OS-specific installation options, please see [the wiki](https://github.
 ### Support
 
 Come to the friendly and low-volume [rquantlib mailing list](http://rquantlib.groups.io) for help.
+
+### See Also
+
+The [RcppQuantuccia](https://github.com/eddelbuettel/rcppquantuccia) project is closely related---take a look!
 
 ### Authors
 
