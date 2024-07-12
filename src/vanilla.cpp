@@ -1,7 +1,7 @@
 
 //  RQuantLib -- R interface to the QuantLib libraries
 //
-//  Copyright (C) 2002 - 2023  Dirk Eddelbuettel <edd@debian.org>
+//  Copyright (C) 2002 - 2024  Dirk Eddelbuettel <edd@debian.org>
 //
 //  This file is part of RQuantLib.
 //
@@ -86,12 +86,9 @@ Rcpp::List europeanOptionEngine(std::string type,
                                                                  QuantLib::Handle<QuantLib::YieldTermStructure>(rTS),
                                                                  QuantLib::Handle<QuantLib::BlackVolTermStructure>(volTS)));
 
-        QL_DEPRECATED_DISABLE_WARNING
-        QuantLib::ext::shared_ptr<QuantLib::PricingEngine> engine(new QuantLib::AnalyticDividendEuropeanEngine(stochProcess));
-        //QuantLib::ext::shared_ptr<QuantLib::PricingEngine> engine(new QuantLib::AnalyticEuropeanEngine(stochProcess));
+        QuantLib::ext::shared_ptr<QuantLib::PricingEngine> engine(new QuantLib::AnalyticDividendEuropeanEngine(stochProcess, QuantLib::DividendVector(discDivDates, discDividends)));
 
-        QuantLib::DividendVanillaOption option(payoff, exercise, discDivDates, discDividends);
-        QL_DEPRECATED_ENABLE_WARNING
+        QuantLib::VanillaOption option(payoff, exercise);
         option.setPricingEngine(engine);
 
         return Rcpp::List::create(Rcpp::Named("value") = option.NPV(),
@@ -185,19 +182,16 @@ Rcpp::List americanOptionEngine(std::string type,
             discDividends[i] = divvalues[i];
         }
 
-        QL_DEPRECATED_DISABLE_WARNING
-        QuantLib::DividendVanillaOption option(payoff, exercise, discDivDates, discDividends);
-        QL_DEPRECATED_ENABLE_WARNING
+        QuantLib::VanillaOption option(payoff, exercise);
+
         if (engine=="BaroneAdesiWhaley") {
             Rcpp::warning("Discrete dividends, engine switched to CrankNicolson");
             engine = "CrankNicolson";
         }
 
         if (engine=="CrankNicolson") { // FDDividendAmericanEngine only works with CrankNicolson
-            // suggestion by Bryan Lewis: use CrankNicolson for greeks
-            QuantLib::ext::shared_ptr<QuantLib::PricingEngine>
-            fdcnengine(new QuantLib::FdBlackScholesVanillaEngine(stochProcess, timeSteps, gridPoints));
-            option.setPricingEngine(fdcnengine);
+            // see eg test-suite/americanoption.cc
+            option.setPricingEngine(QuantLib::MakeFdBlackScholesVanillaEngine(stochProcess).withCashDividends(discDivDates, discDividends));
             return Rcpp::List::create(Rcpp::Named("value") = option.NPV(),
                                       Rcpp::Named("delta") = option.delta(),
                                       Rcpp::Named("gamma") = option.gamma(),
