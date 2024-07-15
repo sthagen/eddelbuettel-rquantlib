@@ -33,18 +33,11 @@ Rcpp::List europeanOptionEngine(std::string type,
                                 Rcpp::Nullable<Rcpp::NumericVector> discreteDividends,
                                 Rcpp::Nullable<Rcpp::NumericVector> discreteDividendsTimeUntil) {
 
-#ifdef QL_HIGH_RESOLUTION_DATE
-    // in minutes
-    boost::posix_time::time_duration length = boost::posix_time::minutes(boost::uint64_t(maturity * 360 * 24 * 60));
-#else
-    int length           = int(maturity*360 + 0.5); // FIXME: this could be better
-#endif
-
     QuantLib::Option::Type optionType = getOptionType(type);
     QuantLib::Date today = QuantLib::Date::todaysDate();
+    QuantLib::Date exDate = getFutureDate(today, maturity);
     QuantLib::Settings::instance().evaluationDate() = today;
     QuantLib::DayCounter dc = QuantLib::Actual360();
-    namespace qlext = QuantLib::ext; 				// convenience namespace shortcut
     auto spot  = qlext::make_shared<QuantLib::SimpleQuote>(underlying);
     auto vol   = qlext::make_shared<QuantLib::SimpleQuote>(volatility);
     auto volTS = flatVol(today, vol, dc); 		// cf src/utils.cpp
@@ -55,12 +48,6 @@ Rcpp::List europeanOptionEngine(std::string type,
 
     bool withDividends = discreteDividends.isNotNull() && discreteDividendsTimeUntil.isNotNull();
 
-#ifdef QL_HIGH_RESOLUTION_DATE
-    QuantLib::Date exDate(today.dateTime() + length);
-#else
-    QuantLib::Date exDate = today + length;
-#endif
-
     auto exercise = qlext::make_shared<QuantLib::EuropeanExercise>(exDate);
     auto payoff   = qlext::make_shared<QuantLib::PlainVanillaPayoff>(optionType, strike);
 
@@ -70,12 +57,7 @@ Rcpp::List europeanOptionEngine(std::string type,
         std::vector<QuantLib::Date> discDivDates(n);
         std::vector<double> discDividends(n);
         for (int i = 0; i < n; i++) {
-#ifdef QL_HIGH_RESOLUTION_DATE
-            boost::posix_time::time_duration discreteDividendLength = boost::posix_time::minutes(boost::uint64_t(divtimes[i] * 360 * 24 * 60));
-            discDivDates[i] = QuantLib::Date(today.dateTime() + discreteDividendLength);
-#else
-            discDivDates[i] = today + int(divtimes[i] * 360 + 0.5);
-#endif
+            discDivDates[i] = getFutureDate(today, divtimes[i]);
             discDividends[i] = divvalues[i];
         }
 
@@ -126,19 +108,12 @@ Rcpp::List americanOptionEngine(std::string type,
                                 Rcpp::Nullable<Rcpp::NumericVector> discreteDividends,
                                 Rcpp::Nullable<Rcpp::NumericVector> discreteDividendsTimeUntil) {
 
-#ifdef QL_HIGH_RESOLUTION_DATE
-    // in minutes
-    boost::posix_time::time_duration length = boost::posix_time::minutes(boost::uint64_t(maturity * 360 * 24 * 60));
-#else
-    int length = int(maturity * 360 + 0.5); // FIXME: this could be better
-
-#endif
     QuantLib::Option::Type optionType = getOptionType(type);
 
     QuantLib::Date today = QuantLib::Date::todaysDate();
     QuantLib::Settings::instance().evaluationDate() = today;
+    QuantLib::Date exDate = getFutureDate(today, maturity);
     QuantLib::DayCounter dc = QuantLib::Actual360();
-    namespace qlext = QuantLib::ext; 				// convenience namespace shortcut
     auto spot  = qlext::make_shared<QuantLib::SimpleQuote>(underlying);
     auto qRate = qlext::make_shared<QuantLib::SimpleQuote>(dividendYield);
     auto qTS   = flatRate(today, qRate, dc); 	// cf src/utils.cpp
@@ -148,12 +123,6 @@ Rcpp::List americanOptionEngine(std::string type,
     auto volTS = flatVol(today, vol, dc); 		// cf src/utils.cpp
 
     bool withDividends = discreteDividends.isNotNull() && discreteDividendsTimeUntil.isNotNull();
-
-#ifdef QL_HIGH_RESOLUTION_DATE
-    QuantLib::Date exDate(today.dateTime() + length);
-#else
-    QuantLib::Date exDate = today + length;
-#endif
 
     auto exercise = qlext::make_shared<QuantLib::AmericanExercise>(today, exDate);
     auto payoff   = qlext::make_shared<QuantLib::PlainVanillaPayoff>(optionType, strike);
@@ -170,12 +139,7 @@ Rcpp::List americanOptionEngine(std::string type,
         std::vector<QuantLib::Date> discDivDates(n);
         std::vector<double> discDividends(n);
         for (int i = 0; i < n; i++) {
-#ifdef QL_HIGH_RESOLUTION_DATE
-            boost::posix_time::time_duration discreteDividendLength = boost::posix_time::minutes(boost::uint64_t(divtimes[i] * 360 * 24 * 60));
-            discDivDates[i] = QuantLib::Date(today.dateTime() + discreteDividendLength);
-#else
-            discDivDates[i] = today + int(divtimes[i] * 360 + 0.5);
-#endif
+            discDivDates[i] = getFutureDate(today, divtimes[i]);
             discDividends[i] = divvalues[i];
         }
 
@@ -252,15 +216,8 @@ Rcpp::List europeanOptionArraysEngine(std::string type, Rcpp::NumericMatrix par)
         QuantLib::Spread dividendYield = par(i, 2);    // third column
         QuantLib::Rate riskFreeRate    = par(i, 3);    // fourth column
         QuantLib::Time maturity        = par(i, 4);    // fifth column
-#ifdef QL_HIGH_RESOLUTION_DATE
-        // in minutes
-        boost::posix_time::time_duration length = boost::posix_time::minutes(boost::uint64_t(maturity * 360 * 24 * 60));
-#else
-        int length           = int(maturity*360 + 0.5); // FIXME: this could be better
-#endif
         double volatility    = par(i, 5);    // sixth column
 
-        namespace qlext = QuantLib::ext; 	 // convenience namespace shortcut
         auto spot  = qlext::make_shared<QuantLib::SimpleQuote>(underlying);
         auto vol   = qlext::make_shared<QuantLib::SimpleQuote>(volatility);
         auto volTS = flatVol(today, vol, dc); 		// cf src/utils.cpp
@@ -269,11 +226,7 @@ Rcpp::List europeanOptionArraysEngine(std::string type, Rcpp::NumericMatrix par)
         auto rRate = qlext::make_shared<QuantLib::SimpleQuote>(riskFreeRate);
         auto rTS   = flatRate(today, rRate, dc); 	// cf src/utils.cpp
 
-#ifdef QL_HIGH_RESOLUTION_DATE
-    QuantLib::Date exDate(today.dateTime() + length);
-#else
-    QuantLib::Date exDate = today + length;
-#endif
+        QuantLib::Date exDate = getFutureDate(today, maturity);
         auto exercise = qlext::make_shared<QuantLib::EuropeanExercise>(exDate);
         auto payoff   = qlext::make_shared<QuantLib::PlainVanillaPayoff>(optionType, strike);
         auto option = makeOption(payoff, exercise, spot, qTS, rTS, volTS);

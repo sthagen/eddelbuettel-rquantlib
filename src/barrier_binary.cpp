@@ -32,12 +32,6 @@ Rcpp::List binaryOptionEngine(std::string binType,
                               double volatility,
                               double cashPayoff) {
 
-#ifdef QL_HIGH_RESOLUTION_DATE
-    // in minutes
-    boost::posix_time::time_duration length = boost::posix_time::minutes(boost::uint64_t(maturity * 360 * 24 * 60));
-#else
-    int length = int(maturity*360 + 0.5); // FIXME: this could be better, but same rounding in QL
-#endif
     QuantLib::Option::Type optionType = getOptionType(type);
 
     // new QuantLib 0.3.5 framework: digitals, updated for 0.3.7
@@ -45,9 +39,9 @@ Rcpp::List binaryOptionEngine(std::string binType,
     // cf QuantLib-0.9.0/test-suite/digitaloption.cpp
     QuantLib::Date today = QuantLib::Date::todaysDate();
     QuantLib::Settings::instance().evaluationDate() = today;
+    QuantLib::Date exDate = getFutureDate(today, maturity);
 
     QuantLib::DayCounter dc = QuantLib::Actual360();
-    namespace qlext = QuantLib::ext; 				// convenience namespace shortcut
     auto spot  = qlext::make_shared<QuantLib::SimpleQuote>(underlying);
     auto qRate = qlext::make_shared<QuantLib::SimpleQuote>(dividendYield);
     auto qTS   = flatRate(today,qRate,dc);
@@ -67,11 +61,6 @@ Rcpp::List binaryOptionEngine(std::string binType,
         throw std::range_error("Unknown binary option type " + binType);
     }
 
-#ifdef QL_HIGH_RESOLUTION_DATE
-    QuantLib::Date exDate(today.dateTime() + length);
-#else
-    QuantLib::Date exDate = today + length;
-#endif
     QuantLib::ext::shared_ptr<QuantLib::Exercise> exercise;
     if (excType=="american") {
         exercise = qlext::make_shared<QuantLib::AmericanExercise>(today, exDate);
@@ -121,13 +110,6 @@ double binaryOptionImpliedVolatilityEngine(std::string type,
                                            double volatility,
                                            double cashPayoff) {
 
-#ifdef QL_HIGH_RESOLUTION_DATE
-    // in minutes
-    boost::posix_time::time_duration length = boost::posix_time::minutes(boost::uint64_t(maturity * 360 * 24 * 60));
-#else
-    int length = int(maturity*360 + 0.5); // FIXME: this could be better
-#endif
-
     QuantLib::Option::Type optionType = getOptionType(type);
 
     // updated again for QuantLib 0.9.0,
@@ -135,7 +117,7 @@ double binaryOptionImpliedVolatilityEngine(std::string type,
     QuantLib::Date today = QuantLib::Date::todaysDate();
     QuantLib::Settings::instance().evaluationDate() = today;
     QuantLib::DayCounter dc = QuantLib::Actual360();
-    namespace qlext = QuantLib::ext; 				// convenience namespace shortcut
+    QuantLib::Date exDate = getFutureDate(today, maturity);
     auto spot  = qlext::make_shared<QuantLib::SimpleQuote>(underlying);
     auto qRate = qlext::make_shared<QuantLib::SimpleQuote>(dividendYield);
     auto qTS   = flatRate(today, qRate, dc);
@@ -145,12 +127,6 @@ double binaryOptionImpliedVolatilityEngine(std::string type,
     auto volTS = flatVol(today, vol, dc);
 
     auto payoff = qlext::make_shared<QuantLib::CashOrNothingPayoff>(optionType, strike, cashPayoff);
-
-#ifdef QL_HIGH_RESOLUTION_DATE
-    QuantLib::Date exDate(today.dateTime() + length);
-#else
-    QuantLib::Date exDate = today + length;
-#endif
 
     auto exercise = qlext::make_shared<QuantLib::EuropeanExercise>(exDate);
 
@@ -178,13 +154,6 @@ Rcpp::List barrierOptionEngine(std::string barrType,
                                double barrier,
                                double rebate) {
 
-#ifdef QL_HIGH_RESOLUTION_DATE
-    // in minutes
-    boost::posix_time::time_duration length = boost::posix_time::minutes(boost::uint64_t(maturity * 360 * 24 * 60));
-#else
-    int length = int(maturity*360 + 0.5); // FIXME: this could be better
-#endif
-
     QuantLib::Barrier::Type barrierType = QuantLib::Barrier::DownIn;
     if (barrType=="downin") {
         barrierType = QuantLib::Barrier::DownIn;
@@ -206,7 +175,7 @@ Rcpp::List barrierOptionEngine(std::string barrType,
     QuantLib::Date today = QuantLib::Date::todaysDate();
     QuantLib::Settings::instance().evaluationDate() = today;
     QuantLib::DayCounter dc = QuantLib::Actual360();
-    namespace qlext = QuantLib::ext; 				// convenience namespace shortcut
+    QuantLib::Date exDate = getFutureDate(today, maturity);
     auto spot = qlext::make_shared<QuantLib::SimpleQuote>(underlying);
     auto qRate = qlext::make_shared<QuantLib::SimpleQuote>(dividendYield);
     auto qTS = flatRate(today, qRate, dc);
@@ -214,12 +183,6 @@ Rcpp::List barrierOptionEngine(std::string barrType,
     auto rTS = flatRate(today,rRate,dc);
     auto vol = qlext::make_shared<QuantLib::SimpleQuote>(volatility);
     auto volTS = flatVol(today, vol, dc);
-
-#ifdef QL_HIGH_RESOLUTION_DATE
-    QuantLib::Date exDate(today.dateTime() + length);
-#else
-    QuantLib::Date exDate = today + length;
-#endif
 
     auto exercise = qlext::make_shared<QuantLib::EuropeanExercise>(exDate);
 

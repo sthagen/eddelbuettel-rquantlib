@@ -1,3 +1,16 @@
+2024-07-14  Dirk Eddelbuettel  <edd@debian.org>
+
+	* src/utils.cpp (getFutureDate): New helper function
+	* inst/include/rquantlib_internal.h: Declaration
+	* src/asian.cpp: Use new helper function
+	* src/barrier_binary.cpp: Idem
+	* src/implieds.cpp Idem
+	* src/vanilla.cpp: Idem
+
+	* inst/include/rquantlib_internal.h: Move qlext namespace defintion
+
+	* src/affine.cpp: Minor refactoring and C++ update
+
 2024-07-13  Dirk Eddelbuettel  <edd@debian.org>
 
 	* src/asian.cpp: Minor refactoring and C++ update
